@@ -6,7 +6,7 @@ import com.keyboard.service.interfaces.TomServiceInterface;
 /**
  * @Author 2B键盘
  * @Date 2018/12/11 1:29
- * Description TODO
+ * @Description TODO
  */
 @JerryService("TomService")
 public class TomService implements TomServiceInterface {
