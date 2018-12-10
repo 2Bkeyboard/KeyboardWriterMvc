@@ -220,6 +220,7 @@ public class DispatcherServlet extends HttpServlet {
             }
             //看到142.31
         }
+        return new String[0];
     }
 
     @Override
@@ -238,8 +239,7 @@ public class DispatcherServlet extends HttpServlet {
         //拿到对象
         TomController instance = (TomController) beans.get("/"+path.split("/")[1]);
         //执行
-        Object args =
-        method.invoke(instance,args);
+        //method.invoke(instance,new Object());
     }
 
 
