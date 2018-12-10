@@ -3,14 +3,14 @@ package com.keyboard.annotation;
 import java.lang.annotation.*;
 
 /**
- * @Author 2B键盘 请求地址映射注解
- * @Date 2018/12/11 1:16
+ * @Author 2B键盘 获取参数注解
+ * @Date 2018/12/11 1:21
  * Description TODO
  */
-@Target({ElementType.TYPE,ElementType.METHOD})
+@Target(ElementType.PARAMETER)
 @Retention(RetentionPolicy.RUNTIME)
 @Documented
-public @interface JerrayRequestMapping {
+public @interface JerryRequestParam {
 
     String value() default "";
 

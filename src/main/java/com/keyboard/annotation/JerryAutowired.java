@@ -3,14 +3,14 @@ package com.keyboard.annotation;
 import java.lang.annotation.*;
 
 /**
- * @Author 2B键盘 获取参数注解
- * @Date 2018/12/11 1:21
+ * @Author 2B键盘 依赖注入注解
+ * @Date 2018/12/11 1:18
  * Description TODO
  */
-@Target(ElementType.PARAMETER)
+@Target(ElementType.FIELD)
 @Retention(RetentionPolicy.RUNTIME)
 @Documented
-public @interface JerrayRequestParam {
+public @interface JerryAutowired {
 
     String value() default "";
 

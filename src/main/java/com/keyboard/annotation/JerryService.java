@@ -10,5 +10,8 @@ import java.lang.annotation.*;
 @Target(ElementType.TYPE)
 @Retention(RetentionPolicy.CLASS)
 @Documented
-public @interface JerrayService {
+public @interface JerryService {
+
+    String value() default "";
+
 }
