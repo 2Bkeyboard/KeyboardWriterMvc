@@ -106,8 +106,8 @@ public class DispatcherServlet extends HttpServlet {
                     //判断当前成员变量上是否存在JerryAutowired注解
                     if(field.isAnnotationPresent(JerryAutowired.class)){
                         //根据key去map中拿到已实例化的对象
-                        JerryAutowired jerryAutowired = field.getAnnotation(JerryAutowired.class);
-                        String key = jerryAutowired.value();
+                        String fieldType = field.getType().toString();
+                        String key = fieldType.substring(fieldType.lastIndexOf(".")).replace(".","");
                         //获取对象
                         Object value = beans.get(key);
                         //解除private等权限
@@ -153,9 +153,8 @@ public class DispatcherServlet extends HttpServlet {
                 }else if(classObject.isAnnotationPresent(JerryService.class)){//判断是不是Service类
                     log.info("扫描到Service类======>"+classObject.getName());
                     //map.put(key,instance); 容器放置对象,key适用@JerryService中的值
-                    //获取注解对象 模拟IOC容器
-                    JerryService jerryService = classObject.getAnnotation(JerryService.class);
-                    String key = jerryService.value();
+                    //模拟ioc容器,设置元素key
+                    String key = classObject.getName().substring(classObject.getName().lastIndexOf(".")).replace(".","");
                     //实例化对象
                     Object value = classObject.newInstance();
                     //放入"ioc"容器中

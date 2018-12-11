@@ -11,7 +11,4 @@ import java.lang.annotation.*;
 @Retention(RetentionPolicy.RUNTIME)
 @Documented
 public @interface JerryAutowired {
-
-    String value() default "";
-
 }
