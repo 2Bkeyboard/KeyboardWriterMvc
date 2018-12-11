@@ -182,24 +182,15 @@ public class DispatcherServlet extends HttpServlet {
         //扫描编译好的所有类路径
         URL url = this.getClass().getClassLoader().
                 getResource("/"+basePackage.replaceAll("\\.","/"));
-        //url.getFile == com.keyboard
-        log.info(url.getFile());
-        //获取文件对象
-        String fileStr = url.getFile();
-        File file = new File(fileStr);
-        //拿到com.keyboard下的所有.class
-        String[] filesStr = file.list();
-        //判断是文件还是文件夹
-        for(String path : filesStr){
-            File filePath = new File(fileStr+path);
-            //判断是不是路径,不是路径的话一定是.class
-            if(filePath.isDirectory()){
-                //递归
-                doScan(basePackage+"."+path);
+        //将url转换为文件类型
+        File dir = new File(url.getFile());
+        for(File file : dir.listFiles()){
+            //判断file是否为一个文件目录
+            if(file.isDirectory()){
+                //如果是一个文件目录就递归再往下读取
+                doScan(basePackage+"."+file.getName());
             }else{
-                //找到.class文件就记录下来
-                //add("com./.../*.class")
-                classObjectNames.add(basePackage+"."+filePath.getName());
+                classObjectNames.add(basePackage+"."+file.getName().replace(".class",""));
             }
         }
     }
