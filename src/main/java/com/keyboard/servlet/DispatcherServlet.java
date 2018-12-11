@@ -1,9 +1,6 @@
 package com.keyboard.servlet;
 
-import com.keyboard.annotation.JerryAutowired;
-import com.keyboard.annotation.JerryController;
-import com.keyboard.annotation.JerryRequestMapping;
-import com.keyboard.annotation.JerryService;
+import com.keyboard.annotation.*;
 import com.keyboard.controller.TomController;
 import com.keyboard.util.Logger;
 
@@ -16,7 +13,9 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.File;
 import java.io.IOException;
+import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.net.URL;
 import java.util.ArrayList;
@@ -182,15 +181,16 @@ public class DispatcherServlet extends HttpServlet {
     public void doScan(String basePackage){
         //扫描编译好的所有类路径
         URL url = this.getClass().getClassLoader().
-                getResource("/"+basePackage.replace("\\","/"));
+                getResource("/"+basePackage.replaceAll("\\.","/"));
         //url.getFile == com.keyboard
         log.info(url.getFile());
         //获取文件对象
-        File file = new File(url.getFile());
+        String fileStr = url.getFile();
+        File file = new File(fileStr);
         //拿到com.keyboard下的所有.class
-        String[] fileStr = file.list();
+        String[] filesStr = file.list();
         //判断是文件还是文件夹
-        for(String path : fileStr){
+        for(String path : filesStr){
             File filePath = new File(fileStr+path);
             //判断是不是路径,不是路径的话一定是.class
             if(filePath.isDirectory()){
@@ -204,7 +204,7 @@ public class DispatcherServlet extends HttpServlet {
         }
     }
 
-    private static Object[] hand(HttpServletResponse request,HttpServletResponse response,Method method){
+    private static Object[] hand(HttpServletRequest request, HttpServletResponse response, Method method){
         //拿到当前执行的方法有哪些参数
         Class<?>[] paramClazzs = method.getParameterTypes();
         //根据参数个数,new一个参数的数组,将方法里所有的参数赋值到args里面去
@@ -216,11 +216,23 @@ public class DispatcherServlet extends HttpServlet {
                 args[args_i++] = request;
             }
             if(ServletResponse.class.isAssignableFrom(paramClass)){
-                args[args_i++] = request;
+                args[args_i++] = response;
             }
-            //看到142.31
+            //从0-3判断有没有JerryRequestParam注解,当paramClass为0和1时,不是
+            //当为2和3时@jerryRequestParam需要解析
+            Annotation[] paramAns = method.getParameterAnnotations()[index];
+            if(paramAns.length > 0){
+                for(Annotation paramAn : paramAns){
+                    if(JerryRequestParam.class.isAssignableFrom(paramAn.getClass())){
+                        JerryRequestParam jerryRequestParam = (JerryRequestParam) paramAn;
+                        //找到注解中的name和age
+                        args[args_i] = request.getParameter(jerryRequestParam.value());
+                    }
+                }
+            }
+            index++;
         }
-        return new String[0];
+        return args;
     }
 
     @Override
@@ -239,9 +251,14 @@ public class DispatcherServlet extends HttpServlet {
         //拿到对象
         TomController instance = (TomController) beans.get("/"+path.split("/")[1]);
         //执行
-        //method.invoke(instance,new Object());
+        Object args[] = hand(req,resp,method);
+        try {
+            method.invoke(instance,args);
+        } catch (IllegalAccessException e) {
+            e.printStackTrace();
+        } catch (InvocationTargetException e) {
+            e.printStackTrace();
+        }
     }
-
-
 
 }
