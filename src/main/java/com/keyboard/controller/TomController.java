@@ -20,7 +20,7 @@ import java.io.PrintWriter;
 @JerryRequestMapping("/jerry")
 public class TomController {
 
-    @JerryAutowired("TomServiceInterface")
+    @JerryAutowired("tomService")
     private TomService tomService;
 
     @JerryRequestMapping("/query")

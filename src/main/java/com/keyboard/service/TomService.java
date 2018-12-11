@@ -8,7 +8,7 @@ import com.keyboard.service.interfaces.TomServiceInterface;
  * @Date 2018/12/11 1:29
  * @Description TODO
  */
-@JerryService("TomService")
+@JerryService("tomService")
 public class TomService implements TomServiceInterface {
 
     public String query(String name, String age) {

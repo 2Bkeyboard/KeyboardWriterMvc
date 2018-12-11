@@ -15,7 +15,6 @@ import java.io.File;
 import java.io.IOException;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
-import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.net.URL;
 import java.util.ArrayList;
@@ -40,7 +39,7 @@ public class DispatcherServlet extends HttpServlet {
     private Map<String,Object> beans = new HashMap<String, Object>();
 
     //映射路径
-    private Map<String,Object> handers = new HashMap<String, Object>();
+    private Map<String,Object> handles = new HashMap<String, Object>();
 
 
     /** 为什么要配置要在web.xml:load-on-startup == 0
@@ -79,11 +78,11 @@ public class DispatcherServlet extends HttpServlet {
                 //遍历当前方法是否被JerryRequestMapping注解
                 for (Method method : methods){
                     if(method.isAnnotationPresent(JerryRequestMapping.class)){
-                        JerryRequestMapping jerryRequestMapping1 = classObject.getAnnotation(JerryRequestMapping.class);
+                        JerryRequestMapping jerryRequestMapping1 = method.getAnnotation(JerryRequestMapping.class);
                         String methodPath = jerryRequestMapping1.value();
                         //  /jerry/query/ ---> query Method
                         //map的key是路径,value是方法
-                        handers.put(classPath+methodPath,method);
+                        handles.put(classPath+methodPath,method);
                     }
                 }
             }
@@ -141,8 +140,8 @@ public class DispatcherServlet extends HttpServlet {
             try {
                 Class<?> classObject = Class.forName(cn);
                 //注解扫描
-                if(classObject.isAnnotationPresent(JerryController.class)){//判断是不是Controller类
-                    log.info("扫描到Controller类======>"+classObject.getName());
+                if(classObject.isAnnotationPresent(JerryController.class)) {//判断是不是Controller类
+                    log.info("扫描到Controller类======>" + classObject.getName());
                     //map.put(key,instance); 容器放置对象,key适用@JerryRequestMapping中的值
                     //获取注解对象 模拟IOC容器
                     JerryRequestMapping jerryRequestMapping = classObject.getAnnotation(JerryRequestMapping.class);
@@ -150,8 +149,8 @@ public class DispatcherServlet extends HttpServlet {
                     //实例化对象
                     Object value = classObject.newInstance();
                     //放入"ioc"容器中
-                    beans.put(key,value);
-                } else if(classObject.isAnnotationPresent(JerryService.class)){//判断是不是Service类
+                    beans.put(key, value);
+                }else if(classObject.isAnnotationPresent(JerryService.class)){//判断是不是Service类
                     log.info("扫描到Service类======>"+classObject.getName());
                     //map.put(key,instance); 容器放置对象,key适用@JerryService中的值
                     //获取注解对象 模拟IOC容器
@@ -199,7 +198,7 @@ public class DispatcherServlet extends HttpServlet {
         //拿到当前执行的方法有哪些参数
         Class<?>[] paramClazzs = method.getParameterTypes();
         //根据参数个数,new一个参数的数组,将方法里所有的参数赋值到args里面去
-        Object[] args = new Object[paramClazzs.length];
+         Object[] args = new Object[paramClazzs.length];
         int args_i = 0;
         int index = 0;
         for(Class<?> paramClass : paramClazzs){
@@ -238,16 +237,14 @@ public class DispatcherServlet extends HttpServlet {
         String context = req.getContextPath(); //获取到项目名 /KeyboardWriterMvc/
         String path = uri.replace(context,"");//拿到请求路径
         //路径对应的方法
-        Method method = (Method) handers.get(path);
+        Method method = (Method) handles.get(path);
         //拿到对象
         TomController instance = (TomController) beans.get("/"+path.split("/")[1]);
-        //执行
+        //拿到所有的参数
         Object args[] = hand(req,resp,method);
         try {
             method.invoke(instance,args);
-        } catch (IllegalAccessException e) {
-            e.printStackTrace();
-        } catch (InvocationTargetException e) {
+        } catch (Exception e) {
             e.printStackTrace();
         }
     }

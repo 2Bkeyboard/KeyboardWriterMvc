@@ -8,7 +8,7 @@ import java.lang.annotation.*;
  * @Description 业务层注解
  */
 @Target(ElementType.TYPE)
-@Retention(RetentionPolicy.CLASS)
+@Retention(RetentionPolicy.RUNTIME)
 @Documented
 public @interface JerryService {
 
