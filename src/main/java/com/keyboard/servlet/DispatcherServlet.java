@@ -62,69 +62,24 @@ public class DispatcherServlet extends HttpServlet {
     }
 
     /**
-     * 建立url和方法的关系
+     * 扫描包
+     * @param basePackage
      */
-    public void doMapping(){
-        for(Map.Entry<String,Object> entry : beans.entrySet()) {
-            Object instance = entry.getValue();
-            Class<?> classObject = instance.getClass();
-            //判断是不是controller层
-            if(classObject.isAnnotationPresent(JerryController.class)) {
-                JerryRequestMapping jerryRequestMapping = classObject.getAnnotation(JerryRequestMapping.class);
-                //拿到路径
-                String classPath = jerryRequestMapping.value();
-                //拿到方法
-                Method[] methods = classObject.getMethods();
-                //遍历当前方法是否被JerryRequestMapping注解
-                for (Method method : methods){
-                    if(method.isAnnotationPresent(JerryRequestMapping.class)){
-                        JerryRequestMapping jerryRequestMapping1 = method.getAnnotation(JerryRequestMapping.class);
-                        String methodPath = jerryRequestMapping1.value();
-                        //  /jerry/query/ ---> query Method
-                        //map的key是路径,value是方法
-                        handles.put(classPath+methodPath,method);
-                    }
-                }
+    public void doScan(String basePackage){
+        //扫描编译好的所有类路径
+        URL url = this.getClass().getClassLoader().
+                getResource("/"+basePackage.replaceAll("\\.","/"));
+        //将url转换为文件类型
+        File dir = new File(url.getFile());
+        for(File file : dir.listFiles()){
+            //判断file是否为一个文件目录
+            if(file.isDirectory()){
+                //如果是一个文件目录就递归再往下读取
+                doScan(basePackage+"."+file.getName());
+            }else{
+                classObjectNames.add(basePackage+"."+file.getName().replace(".class",""));
             }
         }
-    }
-
-    /**
-     * 自动装配
-     */
-    public void doAutowired(){
-        //遍历bean
-        for(Map.Entry<String,Object> entry : beans.entrySet()){
-            Object instance = entry.getValue();
-            Class<?> classObject = instance.getClass();
-            //判断是不是controller层
-            if(classObject.isAnnotationPresent(JerryController.class)){
-                //判断哪些成员变量存在JerryAutowired注解
-                Field[] fields = classObject.getDeclaredFields();
-                //遍历fields是否用到JerryAutowired注解
-                for(Field field : fields){
-                    //判断当前成员变量上是否存在JerryAutowired注解
-                    if(field.isAnnotationPresent(JerryAutowired.class)){
-                        //根据key去map中拿到已实例化的对象
-                        String fieldType = field.getType().toString();
-                        String key = fieldType.substring(fieldType.lastIndexOf(".")).replace(".","");
-                        //获取对象
-                        Object value = beans.get(key);
-                        //解除private等权限
-                        field.setAccessible(true);
-                        //设置值
-                        try {
-                            field.set(instance,value);
-                        } catch (IllegalAccessException e) {
-                            e.printStackTrace();
-                        }
-                    }else{
-                        continue;
-                    }
-                }
-            }
-        }
-
     }
 
     /**
@@ -173,22 +128,66 @@ public class DispatcherServlet extends HttpServlet {
     }
 
     /**
-     * 扫描包
-     * @param basePackage
+     * 自动装配
      */
-    public void doScan(String basePackage){
-        //扫描编译好的所有类路径
-        URL url = this.getClass().getClassLoader().
-                getResource("/"+basePackage.replaceAll("\\.","/"));
-        //将url转换为文件类型
-        File dir = new File(url.getFile());
-        for(File file : dir.listFiles()){
-            //判断file是否为一个文件目录
-            if(file.isDirectory()){
-                //如果是一个文件目录就递归再往下读取
-                doScan(basePackage+"."+file.getName());
-            }else{
-                classObjectNames.add(basePackage+"."+file.getName().replace(".class",""));
+    public void doAutowired(){
+        //遍历bean
+        for(Map.Entry<String,Object> entry : beans.entrySet()){
+            Object instance = entry.getValue();
+            Class<?> classObject = instance.getClass();
+            //判断是不是controller层
+            if(classObject.isAnnotationPresent(JerryController.class)){
+                //判断哪些成员变量存在JerryAutowired注解
+                Field[] fields = classObject.getDeclaredFields();
+                //遍历fields是否用到JerryAutowired注解
+                for(Field field : fields){
+                    //判断当前成员变量上是否存在JerryAutowired注解
+                    if(field.isAnnotationPresent(JerryAutowired.class)){
+                        //根据key去map中拿到已实例化的对象
+                        String fieldType = field.getType().toString();
+                        String key = fieldType.substring(fieldType.lastIndexOf(".")).replace(".","");
+                        //获取对象
+                        Object value = beans.get(key);
+                        //解除private等权限
+                        field.setAccessible(true);
+                        //设置值
+                        try {
+                            field.set(instance,value);
+                        } catch (IllegalAccessException e) {
+                            e.printStackTrace();
+                        }
+                    }else{
+                        continue;
+                    }
+                }
+            }
+        }
+    }
+
+    /**
+     * 建立url和方法的关系
+     */
+    public void doMapping(){
+        for(Map.Entry<String,Object> entry : beans.entrySet()) {
+            Object instance = entry.getValue();
+            Class<?> classObject = instance.getClass();
+            //判断是不是controller层
+            if(classObject.isAnnotationPresent(JerryController.class)) {
+                JerryRequestMapping jerryRequestMapping = classObject.getAnnotation(JerryRequestMapping.class);
+                //拿到路径
+                String classPath = jerryRequestMapping.value();
+                //拿到方法
+                Method[] methods = classObject.getMethods();
+                //遍历当前方法是否被JerryRequestMapping注解
+                for (Method method : methods){
+                    if(method.isAnnotationPresent(JerryRequestMapping.class)){
+                        JerryRequestMapping jerryRequestMapping1 = method.getAnnotation(JerryRequestMapping.class);
+                        String methodPath = jerryRequestMapping1.value();
+                        //  /jerry/query/ ---> query Method
+                        //map的key是路径,value是方法
+                        handles.put(classPath+methodPath,method);
+                    }
+                }
             }
         }
     }
