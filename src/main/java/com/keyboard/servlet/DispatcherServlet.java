@@ -215,7 +215,7 @@ public class DispatcherServlet extends HttpServlet {
                     if(JerryRequestParam.class.isAssignableFrom(paramAn.getClass())){
                         JerryRequestParam jerryRequestParam = (JerryRequestParam) paramAn;
                         //找到注解中的name和age
-                        args[args_i] = request.getParameter(jerryRequestParam.value());
+                        args[args_i++] = request.getParameter(jerryRequestParam.value());
                     }
                 }
             }
@@ -238,7 +238,7 @@ public class DispatcherServlet extends HttpServlet {
         //路径对应的方法
         Method method = (Method) handles.get(path);
         //拿到对象
-        TomController instance = (TomController) beans.get("/"+path.split("/")[1]);
+        Object instance = beans.get("/"+path.split("/")[1]);
         //拿到所有的参数
         Object args[] = hand(req,resp,method);
         try {
